@@ -9,16 +9,22 @@
 import SwiftUI
 
 struct MainTabView: View {
+    init() {
+        UITabBar.appearance().backgroundColor = .white
+        //UITabBar.appearance().isTranslucent = false
+    }
+    
     var body: some View {
         TabView {
-            CameraView()
-                .tabItem {
-                    Label("카메라", systemImage: "camera.fill")
-                }
             
             AnalysisView()
                 .tabItem {
                     Label("분석", systemImage: "chart.bar.fill")
+                }
+            
+            CameraView()
+                .tabItem {
+                    Label("카메라", systemImage: "camera.fill")
                 }
             
             SessionListView()
@@ -30,6 +36,8 @@ struct MainTabView: View {
                 .tabItem {
                     Label("설정", systemImage: "gear")
                 }
+                .ignoresSafeArea(.all, edges: .bottom)
+                .border(Color.red)
         }
     }
 }

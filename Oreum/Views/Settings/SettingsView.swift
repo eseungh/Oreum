@@ -30,6 +30,14 @@ struct SettingsView: View {
                     Text("개발자 정보")
                     Text("오픈소스 라이선스")
                 }
+                Section(header: Text("정보")) {
+                    Text("개발자 정보")
+                    Text("오픈소스 라이선스")
+                }
+                Section(header: Text("정보")) {
+                    Text("개발자 정보")
+                    Text("오픈소스 라이선스")
+                }
             }
             .navigationTitle("설정")
         }

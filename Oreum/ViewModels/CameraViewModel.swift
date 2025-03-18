@@ -8,7 +8,6 @@
 import SwiftUI
 import AVFoundation
 import Combine
-import Vision
 
 class CameraViewModel: ObservableObject {
     // 카메라 상태 변수
@@ -16,10 +15,6 @@ class CameraViewModel: ObservableObject {
     @Published var isRecording = false
     @Published var showPoseOverlay = true
     @Published var recordingTime: TimeInterval = 0
-    
-    // 포즈 추정 관련 변수
-    @Published var detectedPose: PoseObservation?
-    @Published var detectedMovement: MovementAnalysis?
     
     // 알림 관련 변수
     @Published var showAlert = false
@@ -30,9 +25,6 @@ class CameraViewModel: ObservableObject {
     private let cameraService = CameraService()
     private var cancellables = Set<AnyCancellable>()
     private var timer: Timer?
-    
-    // 포즈 추정 뷰모델
-    private let poseEstimationViewModel = PoseEstimationViewModel()
     
     // 캡처 세션 접근자 추가
     var captureSession: AVCaptureSession {
@@ -56,32 +48,6 @@ class CameraViewModel: ObservableObject {
                 } else {
                     self?.stopTimer()
                     self?.recordingTime = 0
-                }
-            }
-            .store(in: &cancellables)
-        
-        // 포즈 추정 결과 구독
-        poseEstimationViewModel.$currentPose
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] pose in
-                if self?.showPoseOverlay == true {
-                    self?.detectedPose = pose
-                }
-            }
-            .store(in: &cancellables)
-        
-        poseEstimationViewModel.$currentMovement
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] movement in
-                self?.detectedMovement = movement
-            }
-            .store(in: &cancellables)
-        
-        // showPoseOverlay 변화 감지
-        $showPoseOverlay
-            .sink { [weak self] showOverlay in
-                if !showOverlay {
-                    self?.detectedPose = nil
                 }
             }
             .store(in: &cancellables)
@@ -115,11 +81,6 @@ class CameraViewModel: ObservableObject {
     private func setupCamera() {
         cameraService.setupSession()
         cameraService.startSession()
-        
-        // 포즈 추정 설정
-        if showPoseOverlay {
-            setupPoseEstimation()
-        }
     }
     
     func toggleRecording() {
@@ -131,24 +92,7 @@ class CameraViewModel: ObservableObject {
     }
     
     func stopCamera() {
-        poseEstimationViewModel.stopVideoProcessing(for: captureSession)
         cameraService.stopSession()
-    }
-    
-    private func setupPoseEstimation() {
-        poseEstimationViewModel.setupVideoProcessing(for: captureSession)
-    }
-    
-    // 포즈 오버레이 표시 전환
-    func togglePoseOverlay() {
-        showPoseOverlay.toggle()
-        
-        if showPoseOverlay {
-            setupPoseEstimation()
-        } else {
-            poseEstimationViewModel.stopVideoProcessing(for: captureSession)
-            detectedPose = nil
-        }
     }
     
     private func startTimer() {
