@@ -399,6 +399,9 @@
 				DEVELOPMENT_TEAM = C5FLVCCHAG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "클라이밍 분석을 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "클라이밍 세션 녹화를 위해 마이크 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "클라이밍 비디오를 사진 라이브러리에 저장하기 위해 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +431,9 @@
 				DEVELOPMENT_TEAM = C5FLVCCHAG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "클라이밍 분석을 위해 카메라 접근이 필요합니다.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "클라이밍 세션 녹화를 위해 마이크 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "클라이밍 비디오를 사진 라이브러리에 저장하기 위해 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
