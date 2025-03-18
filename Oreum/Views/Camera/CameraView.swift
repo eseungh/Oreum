@@ -13,9 +13,46 @@ struct CameraView: View {
     var body: some View {
         ZStack {
             if viewModel.isAuthorized {
-                // 카메라 미리보기 - 중요한 변경: .all 대신 .top만 무시
+                // 카메라 미리보기
                 CameraPreviewView(session: viewModel.captureSession)
                     .edgesIgnoringSafeArea(.top)
+                
+                // 포즈 오버레이 (showPoseOverlay가 true일 때만 표시)
+                if viewModel.showPoseOverlay, let pose = viewModel.detectedPose {
+                    GeometryReader { geometry in
+                        PoseOverlayView(
+                            pose: pose,
+                            frame: geometry.frame(in: .local)
+                        )
+                    }
+                    .edgesIgnoringSafeArea(.top)
+                }
+                
+                // 동작 유형 표시 (showPoseOverlay가 true일 때만 표시)
+                if viewModel.showPoseOverlay, let movement = viewModel.detectedMovement {
+                    VStack {
+                        Spacer().frame(height: 100)
+                        
+                        HStack {
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text(movement.movementType.rawValue)
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.white)
+                                
+                                Text("신뢰도: \(Int(movement.confidence * 100))%")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(8)
+                            .padding(.trailing, 16)
+                        }
+                    }
+                }
                 
                 // UI 오버레이
                 VStack {
@@ -71,7 +108,6 @@ struct CameraView: View {
                 .padding()
             }
         }
-        // ZStack 자체에는 edgesIgnoringSafeArea 사용하지 않음
         .onAppear {
             viewModel.checkPermissions()
         }

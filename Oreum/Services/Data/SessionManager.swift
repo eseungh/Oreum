@@ -35,8 +35,15 @@ class SessionManager {
     // 세션 저장하기
     func saveSession(_ session: ClimbingSession) {
         var sessions = getAllSessions()
+        
+        // 디버깅 로그
+        print("저장 전 세션 수: \(sessions.count)")
+        print("저장할 세션 정보: ID=\(session.id), 제목=\(session.title), 비디오 URL=\(session.videoURL)")
+           
         sessions.append(session)
         saveSessions(sessions)
+        
+        print("저장 후 세션 수: \(sessions.count)")
         
         // 썸네일 생성
         generateThumbnail(for: session)
