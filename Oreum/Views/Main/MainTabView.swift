@@ -11,7 +11,6 @@ import SwiftUI
 struct MainTabView: View {
     init() {
         UITabBar.appearance().backgroundColor = .white
-        //UITabBar.appearance().isTranslucent = false
     }
     
     var body: some View {
@@ -19,7 +18,7 @@ struct MainTabView: View {
             
             AnalysisView()
                 .tabItem {
-                    Label("분석", systemImage: "chart.bar.fill")
+                    Label("오름", systemImage: "chart.bar.fill")
                 }
             
             CameraView()
@@ -36,8 +35,6 @@ struct MainTabView: View {
                 .tabItem {
                     Label("설정", systemImage: "gear")
                 }
-                .ignoresSafeArea(.all, edges: .bottom)
-                .border(Color.red)
         }
     }
 }
@@ -45,5 +42,5 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Item.self, inMemory: false)
 }

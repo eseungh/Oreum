@@ -9,12 +9,22 @@ import SwiftUI
 
 struct CameraView: View {
     @StateObject private var viewModel = CameraViewModel()
+    @StateObject private var poseViewModel = PoseEstimationViewModel()
     
     var body: some View {
         ZStack {
             if viewModel.isAuthorized {
                 CameraPreviewView(session: viewModel.captureSession)
                     .edgesIgnoringSafeArea(.top)
+                
+                if viewModel.showPoseOverlay && !poseViewModel.currentJoints.isEmpty {
+                    PoseOverlayView(
+                        joints: poseViewModel.currentJoints,
+                        viewSize: UIScreen.main.bounds.size
+                    )
+                    .edgesIgnoringSafeArea(.all)
+                }
+                            
                 
                 // UI 오버레이
                 VStack {
@@ -73,9 +83,20 @@ struct CameraView: View {
         // ZStack 자체에는 edgesIgnoringSafeArea 사용하지 않음
         .onAppear {
             viewModel.checkPermissions()
-        }
+            
+            //포즈 추정 시작 추가
+            if viewModel.isAuthorized && !poseViewModel.isProcessingLiveVideo {
+                poseViewModel.startLiveDetection(with: viewModel.captureSession)
+                }
+            }
+                
         .onDisappear {
             viewModel.stopCamera()
+            
+            //포즈 추정 중지 추가
+            if poseViewModel.isProcessingLiveVideo {
+                poseViewModel.stopLiveDetection()
+            }
         }
         .alert(isPresented: $viewModel.showAlert) {
             Alert(
