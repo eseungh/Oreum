@@ -16,6 +16,12 @@ struct OreumApp: App {
             MainTabView()
                 .background(Color.white)
                 .preferredColorScheme(.light)
+       
+            // 앱 시작 시 호출하도록 추가
+            // OreumApp.swift의 WindowGroup에 추가
+            .onAppear {
+                SessionManager.shared.verifySessionFiles()
+            }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .background {

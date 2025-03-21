@@ -10,15 +10,40 @@ import AVKit
 
 struct SessionDetailView: View {
     let session: ClimbingSession
+    @State private var videoExists: Bool = false
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // 비디오 플레이어
-                VideoPlayerView(url: session.videoURL)
-                    .frame(height: 240)
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
+                // 비디오 존재 여부에 따라 다른 뷰 표시
+                               if videoExists {
+                                   // 기존 비디오 플레이어
+                                   VideoPlayerView(url: session.videoURL)
+                                       .frame(height: 240)
+                                       .cornerRadius(12)
+                                       .shadow(radius: 4)
+                               } else {
+                                   // 비디오 파일이 없는 경우 대체 뷰
+                                   VStack {
+                                       Image(systemName: "exclamationmark.triangle")
+                                           .font(.system(size: 40))
+                                           .foregroundColor(.orange)
+                                           .padding()
+                                       
+                                       Text("비디오 파일을 찾을 수 없습니다")
+                                           .font(.headline)
+                                       
+                                       Text("파일이 이동되었거나 삭제되었을 수 있습니다")
+                                           .font(.subheadline)
+                                           .foregroundColor(.secondary)
+                                           .multilineTextAlignment(.center)
+                                           .padding()
+                                   }
+                                   .frame(height: 240)
+                                   .frame(maxWidth: .infinity)
+                                   .background(Color.gray.opacity(0.1))
+                                   .cornerRadius(12)
+                               }
                 
                 // 세션 정보
                 VStack(alignment: .leading, spacing: 12) {
@@ -53,6 +78,11 @@ struct SessionDetailView: View {
             }
             .padding()
         }
+        .onAppear {
+            // 뷰가 나타날 때 비디오 파일 존재 여부 확인
+            checkVideoFile()
+        }
+        
         .navigationTitle("세션 상세")
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
@@ -71,4 +101,12 @@ struct SessionDetailView: View {
         let seconds = Int(duration) % 60
         return String(format: "%d분 %02d초", minutes, seconds)
     }
+    
+    private func checkVideoFile() {
+          let fileExists = FileManager.default.fileExists(atPath: session.videoURL.path)
+          print("세션 ID: \(session.id), 비디오 경로: \(session.videoURL.path), 파일 존재?: \(fileExists)")
+          
+          // 상태 업데이트
+          videoExists = fileExists
+      }
 }

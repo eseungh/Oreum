@@ -32,6 +32,68 @@ class SessionManager {
         }
     }
     
+    func secureVideoFile(at url: URL) {
+        do {
+            var resourceValues = URLResourceValues()
+            resourceValues.isExcludedFromBackup = false  // 백업에서 제외하지 않음
+            
+            var fileURL = url
+            try fileURL.setResourceValues(resourceValues)
+            
+            print("파일 보안 속성 설정 완료: \(url.lastPathComponent)")
+        } catch {
+            print("파일 보안 속성 설정 실패: \(error)")
+        }
+    }
+    
+    func verifySessionFiles() {
+        print("세션 파일 무결성 검사 시작...")
+        var sessions = getAllSessions()
+        var needsUpdate = false
+        var validSessions: [ClimbingSession] = []
+        
+        for (index, session) in sessions.enumerated() {
+                let fileExists = FileManager.default.fileExists(atPath: session.videoURL.path)
+                
+                if !fileExists {
+                    print("경고: 세션 \(session.id)의 비디오 파일이 존재하지 않습니다.")
+                    sessions[index].markVideoAsMissing() // 이런 메서드를 ClimbingSession에 추가
+                    needsUpdate = true
+                }
+            }
+            
+            if needsUpdate {
+                saveSessions(sessions)
+            }
+        }
+/*        for (index, session) in sessions.enumerated() {
+            let fileExists = FileManager.default.fileExists(atPath: session.videoURL.path)
+            
+            if fileExists {
+                print("세션 ID: \(session.id) - 비디오 파일 확인 완료")
+                // 파일이 존재하면 유효한 세션으로 간주
+                validSessions.append(session)
+                secureVideoFile(at: session.videoURL)
+            } else {
+                print("경고: 세션 ID: \(session.id) - 비디오 파일 누락됨: \(session.videoURL.path)")
+                
+                // 파일이 누락된 경우 상태 업데이트
+                var updatedSession = session
+                updatedSession.markVideoAsMissing()
+                validSessions.append(updatedSession)
+                
+                needsUpdate = true
+            }
+        }
+        
+        if needsUpdate {
+            print("누락된 파일이 있어 세션 데이터 업데이트 중...")
+            saveSessions(validSessions)
+        }
+        
+        print("세션 파일 무결성 검사 완료: 총 \(validSessions.count)개 세션, \(needsUpdate ? "업데이트 수행됨" : "모든 파일 정상")")
+    }
+*/
     // 세션 저장하기
     func saveSession(_ session: ClimbingSession) {
         var sessions = getAllSessions()
@@ -44,7 +106,6 @@ class SessionManager {
         saveSessions(sessions)
         
         print("저장 후 세션 수: \(sessions.count)")
-        
         // 썸네일 생성
         generateThumbnail(for: session)
     }

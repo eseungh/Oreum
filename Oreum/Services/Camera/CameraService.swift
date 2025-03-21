@@ -78,8 +78,11 @@ class CameraService: NSObject, ObservableObject {
     
     // 녹화 시작
     func startRecording() {
-        guard !isRecording else { return }
-        
+        guard !isRecording else {
+            print("이미 녹화 중입니다.")
+            return
+        }
+        print("녹화 시작 요청")
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
@@ -87,6 +90,7 @@ class CameraService: NSObject, ObservableObject {
         let fileURL = documentsPath.appendingPathComponent("climbing_\(dateString).mov")
         
         videoOutput.startRecording(to: fileURL, recordingDelegate: self)
+           print("startRecording 메소드 종료")
     }
     
     // 녹화 중지
@@ -100,45 +104,83 @@ class CameraService: NSObject, ObservableObject {
 
 extension CameraService: AVCaptureFileOutputRecordingDelegate {
     func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
-        DispatchQueue.main.async {
+        print("didStartRecording 콜백 호출됨: \(fileURL.path)")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             self.isRecording = true
+            print("isRecording 상태 변경됨: \(self.isRecording)")
         }
     }
     
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
-        DispatchQueue.main.async {
-            self.isRecording = false
-        }
+        print("didFinishRecordingTo 콜백 호출됨: \(outputFileURL.path)")
         
+        // 상태 업데이트는 모든 처리 전에 먼저 수행
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            // 기존 상태 저장
+            let wasRecording = self.isRecording
+            // 상태 업데이트
+            self.isRecording = false
+            print("isRecording 상태 변경됨: \(wasRecording) -> \(self.isRecording)")
+        }
         if let error = error {
             print("녹화 오류: \(error.localizedDescription)")
-            return
+            // 심각한 오류인 경우 여기서 처리 중단
+            if (error as NSError).domain == AVFoundationErrorDomain &&
+                (error as NSError).code == AVError.diskFull.rawValue {
+                return
+            }
+            
+            
+            // 녹화 지속 시간 계산
+            let duration = output.recordedDuration.seconds
+            
+            // 날짜 포맷
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy년 MM월 dd일 HH:mm"
+            let formattedDate = dateFormatter.string(from: Date())
+            let sessionTitle = "클라이밍 세션 - \(formattedDate)"
+            
+            // 임시 URL을 앱 문서 디렉토리로 이동
+            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileName = "climbing_\(UUID().uuidString).mov"
+            let permanentURL = documentsPath.appendingPathComponent(fileName)
+            
+            do {
+                // 기존 파일이 있다면 삭제
+                if FileManager.default.fileExists(atPath: permanentURL.path) {
+                    try FileManager.default.removeItem(at: permanentURL)
+                }
+                
+                // 파일 이동 (복사 후 원본 삭제)
+                try FileManager.default.copyItem(at: outputFileURL, to: permanentURL)
+                try FileManager.default.removeItem(at: outputFileURL)
+                
+                SessionManager.shared.secureVideoFile(at: permanentURL)
+                
+                print("비디오 파일 성공적으로 저장됨: \(permanentURL.path)")
+                
+                // 세션 생성 (파일 이름만 저장)
+                let session = ClimbingSession(
+                    title: sessionTitle,
+                    duration: duration,
+                    videoFileName: fileName
+                )
+                
+                // 세션 저장
+                SessionManager.shared.saveSession(session)
+                
+                // 갤러리 저장 (선택 사항)
+                UISaveVideoAtPathToSavedPhotosAlbum(
+                    permanentURL.path,
+                    nil,
+                    nil,
+                    nil
+                )
+            } catch {
+                print("비디오 파일 저장 오류: \(error)")
+            }
         }
-        
-        // 녹화 지속 시간 계산
-        let duration = output.recordedDuration.seconds
-        
-        // 날짜 포맷
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy년 MM월 dd일 HH:mm"
-        let formattedDate = dateFormatter.string(from: Date())
-        let sessionTitle = "클라이밍 세션 - \(formattedDate)"
-        
-        // 세션 생성 및 저장
-        let session = ClimbingSession(
-            title: sessionTitle,
-            duration: duration,
-            videoURL: outputFileURL
-        )
-        
-        SessionManager.shared.saveSession(session)
-        
-        // 갤러리 저장 (선택 사항)
-        UISaveVideoAtPathToSavedPhotosAlbum(
-            outputFileURL.path,
-            nil,
-            nil,
-            nil
-        )
     }
 }

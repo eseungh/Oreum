@@ -12,7 +12,22 @@ import Combine
 class CameraViewModel: ObservableObject {
     // 카메라 상태 변수
     @Published var isAuthorized = false
-    @Published var isRecording = false
+    @Published var isRecording = false {
+          willSet {
+              print("ViewModel willSet - isRecording: \(isRecording) -> \(newValue)")
+              // 변경 직전에 objectWillChange 알림 발행
+              objectWillChange.send()
+          }
+          didSet {
+              print("ViewModel didSet - isRecording: \(oldValue) -> \(isRecording)")
+              if isRecording {
+                  startTimer()
+              } else {
+                  stopTimer()
+                  recordingTime = 0
+              }
+          }
+      }
     @Published var showPoseOverlay = true
     @Published var recordingTime: TimeInterval = 0
     
@@ -37,21 +52,20 @@ class CameraViewModel: ObservableObject {
     }
     
     private func setupSubscriptions() {
-        // 카메라 서비스 상태 변화 구독
-        cameraService.$isRecording
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isRecording in
-                self?.isRecording = isRecording
-                
-                if isRecording {
-                    self?.startTimer()
-                } else {
-                    self?.stopTimer()
-                    self?.recordingTime = 0
-                }
-            }
-            .store(in: &cancellables)
-    }
+           // 카메라 서비스 상태 변화 구독
+           cameraService.$isRecording
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] isRecording in
+                   guard let self = self else { return }
+                   print("구독 이벤트 수신: isRecording = \(isRecording)")
+                   
+                   // 강제로 약간의 지연 후 UI 업데이트
+                   DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                       self.isRecording = isRecording
+                   }
+               }
+               .store(in: &cancellables)
+       }
     
     func checkPermissions() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -84,10 +98,13 @@ class CameraViewModel: ObservableObject {
     }
     
     func toggleRecording() {
+        print("toggleRecording 호출됨, 현재 상태: \(isRecording)")
         if isRecording {
             cameraService.stopRecording()
+            print("녹화 중지 요청됨")
         } else {
             cameraService.startRecording()
+            print("녹화 시작 요청됨")
         }
     }
     

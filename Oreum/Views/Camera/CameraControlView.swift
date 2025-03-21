@@ -27,7 +27,9 @@ struct CameraControlsView: View {
             }
             
             // 녹화 버튼
-            Button(action: onRecordTapped) {
+            Button(action: {     print("녹화 버튼 내부 액션, 현재 상태: \(isRecording)")
+                onRecordTapped()}) {
+                
                 ZStack {
                     Circle()
                         .fill(Color.white)

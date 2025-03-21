@@ -24,7 +24,7 @@ struct CameraView: View {
                     )
                     .edgesIgnoringSafeArea(.all)
                 }
-                            
+                
                 
                 // UI 오버레이
                 VStack {
@@ -44,15 +44,19 @@ struct CameraView: View {
                     }
                     
                     Spacer()
-                    
-                    // 하단 컨트롤
-                    CameraControlsView(
-                        isRecording: $viewModel.isRecording,
-                        showPoseOverlay: $viewModel.showPoseOverlay,
-                        onRecordTapped: viewModel.toggleRecording
-                    )
                 }
-            } else {
+                .animation(.default, value: viewModel.isRecording) // 애니메이션 트리거 명시
+                // 하단 컨트롤
+                CameraControlsView(
+                    isRecording: $viewModel.isRecording,
+                    showPoseOverlay: $viewModel.showPoseOverlay,
+                    onRecordTapped: {
+                        print("녹화 버튼 탭됨, 현재 상태: \(viewModel.isRecording)")
+                        viewModel.toggleRecording()
+                    }
+                )
+            }
+            else {
                 // 카메라 권한이 없는 경우 (변경 없음)
                 VStack(spacing: 20) {
                     Image(systemName: "camera.metering.unknown")
@@ -87,9 +91,9 @@ struct CameraView: View {
             //포즈 추정 시작 추가
             if viewModel.isAuthorized && !poseViewModel.isProcessingLiveVideo {
                 poseViewModel.startLiveDetection(with: viewModel.captureSession)
-                }
             }
-                
+        }
+        
         .onDisappear {
             viewModel.stopCamera()
             
@@ -104,6 +108,10 @@ struct CameraView: View {
                 message: Text(viewModel.alertMessage),
                 dismissButton: .default(Text("확인"))
             )
+        }
+        .onChange(of: viewModel.isRecording) { oldValue, newValue in
+            print("CameraView - isRecording 변경: \(oldValue) -> \(newValue)")
+            
         }
     }
 }
