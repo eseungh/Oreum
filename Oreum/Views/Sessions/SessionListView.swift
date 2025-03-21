@@ -50,7 +50,7 @@ struct SessionListView: View {
                             NavigationLink(destination: SessionDetailView(session: session)) {
                                 VStack {
                                     SessionThumbnailView(session: session)
-                                        .frame(height: 180)
+                                        .frame(height: 150)
                                     
                                     Spacer()
                                         .frame(height: 8)

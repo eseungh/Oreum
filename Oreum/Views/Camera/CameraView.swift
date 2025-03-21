@@ -34,7 +34,7 @@ struct CameraView: View {
                             RecordingTimerView(recordingTime: viewModel.recordingTime)
                             Spacer()
                         }
-                        .padding(.top, 60)
+                        .padding(.top, 40)
                         .padding(.leading, 20)
                     } else {
                         HStack {
@@ -44,18 +44,18 @@ struct CameraView: View {
                     }
                     
                     Spacer()
+                        .animation(.default, value: viewModel.isRecording) // 애니메이션 트리거 명시
+                    // 하단 컨트롤
+                    CameraControlsView(
+                        isRecording: $viewModel.isRecording,
+                        showPoseOverlay: $viewModel.showPoseOverlay,
+                        onRecordTapped: {
+                            print("녹화 버튼 탭됨, 현재 상태: \(viewModel.isRecording)")
+                            viewModel.toggleRecording()
+                        }
+                    )
                 }
-                .animation(.default, value: viewModel.isRecording) // 애니메이션 트리거 명시
-                // 하단 컨트롤
-                CameraControlsView(
-                    isRecording: $viewModel.isRecording,
-                    showPoseOverlay: $viewModel.showPoseOverlay,
-                    onRecordTapped: {
-                        print("녹화 버튼 탭됨, 현재 상태: \(viewModel.isRecording)")
-                        viewModel.toggleRecording()
-                    }
-                )
-            }
+            }   
             else {
                 // 카메라 권한이 없는 경우 (변경 없음)
                 VStack(spacing: 20) {

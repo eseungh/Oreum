@@ -19,7 +19,7 @@ struct SessionDetailView: View {
                                if videoExists {
                                    // 기존 비디오 플레이어
                                    VideoPlayerView(url: session.videoURL)
-                                       .frame(height: 240)
+                                       .frame(height: 640)
                                        .cornerRadius(12)
                                        .shadow(radius: 4)
                                } else {
@@ -39,7 +39,7 @@ struct SessionDetailView: View {
                                            .multilineTextAlignment(.center)
                                            .padding()
                                    }
-                                   .frame(height: 240)
+                                   .frame(height: 640)
                                    .frame(maxWidth: .infinity)
                                    .background(Color.gray.opacity(0.1))
                                    .cornerRadius(12)
